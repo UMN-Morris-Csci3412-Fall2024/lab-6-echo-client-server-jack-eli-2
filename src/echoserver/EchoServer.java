@@ -4,37 +4,38 @@ import java.io.*;
 import java.net.*;
 
 public class EchoServer {
+    // Define the port number the server will listen on
+    public static final int portNumber = 6013;
+    
     public static void main(String[] args) {
-        int port = 12345; // Default port
+        try {
+            // Start listening on the specified port number
+            ServerSocket sock = new ServerSocket(portNumber);
 
-        if (args.length == 1) {
-            port = Integer.parseInt(args[0]);
-        } else if (args.length > 1) {
-            System.err.println("Usage: java echoserver.EchoServer [port]");
-            System.exit(1);
-        }
-
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("Echo Server is running on port " + port + "...");
-
+            // Continuously listen for client connections
             while (true) {
-                try (Socket clientSocket = serverSocket.accept();
-                     InputStream inputStream = clientSocket.getInputStream();
-                     OutputStream outputStream = clientSocket.getOutputStream()) {
+                // Accept a client connection
+                Socket client = sock.accept();
+                System.out.println("Got request!");
 
-                    byte[] buffer = new byte[1024];
-                    int bytesRead;
-
-                    while ((bytesRead = inputStream.read(buffer)) != -1) {
-                        outputStream.write(buffer, 0, bytesRead);
-                        outputStream.flush(); // Ensure data is sent immediately
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                // Get input and output streams for the client socket
+                InputStream input = client.getInputStream();
+                OutputStream output = client.getOutputStream();
+                
+                int data;
+                // Read data from the client and write it back (echo)
+                while ((data = input.read()) != -1) {
+                    System.out.println("Received byte:" + data);
+                    output.write(data);
                 }
+
+                // Close the client socket when done
+                client.close();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ioe) {
+            // Handle any unexpected IO exceptions
+            System.out.println("We caught an unexpected exception");
+            System.err.println(ioe);
         }
     }
 }
